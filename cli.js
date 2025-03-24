@@ -1,52 +1,70 @@
 // cli.js
 
-// NOTE: Make sure to install yargs before running this file:
-// Run: npm install yargs
+// Make sure all dependencies are installed:
+// npm install yargs inquirer axios fs-extra
 
-const yargs = require('yargs');
-const { hideBin } = require('yargs/helpers');
-const { searchFunctionality, historyFunctionality } = require('./app'); // functions from app.js
+// Import yargs for parsing CLI commands
+import yargs from 'yargs';
+// hideBin helps ignore the first two default Node arguments (node + filename)
+import { hideBin } from 'yargs/helpers';
 
-// Configure CLI using yargs
+// Import your app logic (search & history functionality)
+import { searchFunctionality, historyFunctionality } from './app.js';
+
+// CLI CONFIGURATION
+
+// Start yargs CLI configuration
 yargs(hideBin(process.argv))
+  // Set a usage guide that appears in help
   .usage('Usage: node cli.js <command> [options]')
 
-  // Help menu (shows when user types --help or -h)
+  // Add help menu support
   .help('help')
   .alias('help', 'h')
 
-  // Search command: run with "node cli.js search <keyword>"
+  // SEARCH COMMAND
+  // Usage: node cli.js search <keyword>
   .command(
     'search <keyword>',
-    'Search for books using a keyword',
+    'Search for books using a keyword', // Description
     (yargs) => {
+      // Define expected argument: <keyword>
       yargs.positional('keyword', {
         describe: 'The keyword to search for',
         type: 'string',
       });
     },
     (args) => {
-      searchFunctionality(args.keyword); // Call the function from app.js with user's keyword
+      // When this command is run, call your app's search logic
+      searchFunctionality(args.keyword);
     }
   )
 
-  // History command: run with "node cli.js history <keywords|selections>"
+  // HISTORY COMMAND
+  // Usage: node cli.js history <keywords|selections>
   .command(
     'history <type>',
     'View search or selection history',
     (yargs) => {
+      // <type> must be either 'keywords' or 'selections'
       yargs.positional('type', {
         describe: 'Type of history to view (keywords or selections)',
         type: 'string',
-        choices: ['keywords', 'selections'], // Only allow valid input
+        choices: ['keywords', 'selections'], // enforce valid input
       });
     },
-    () => {
-      historyFunctionality(); // This will prompt user to choose from keyword/selection history
+    (args) => {
+      // Pass user's choice into app's history logic
+      historyFunctionality(args.type);
     }
   )
 
-  // Make sure at least one command is provided
-  .demandCommand(1, 'Please enter a valid command to continue.')
+
+  // Enforce at least one command
+  .demandCommand(1, '！ Please enter a valid command to continue.')
+
+  // Disallow unknown commands or arguments
   .strict()
+
+  // Trigger yargs to parse the input and run the matching command
   .argv;
